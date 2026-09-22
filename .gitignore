@@ -1,0 +1,38 @@
+# ---- Dependencies ----
+node_modules/
+backend/vendor/
+frontend/node_modules/
+
+# ---- Environment / Secrets ----
+.env
+.env.local
+.env.*.local
+backend/.env
+
+# ---- Build output ----
+frontend/dist/
+frontend/build/
+node_modules/.vite/
+
+# ---- Uploaded user content ----
+backend/storage/uploads/products/*
+!backend/storage/uploads/products/.gitignore
+backend/storage/logs/*
+!backend/storage/logs/.gitkeep
+
+# ---- Runtime / temp ----
+cookies.txt
+*.log
+*.tmp
+
+# ---- IDE ----
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+desktop.ini
+backend/test_*.ps1

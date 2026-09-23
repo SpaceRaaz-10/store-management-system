@@ -71,5 +71,8 @@ return function (Router $r): void {
     $r->get   ('/api/purchases',             [PurchaseController::class, 'index']);
     $r->post  ('/api/purchases',             [PurchaseController::class, 'store']);
     $r->get   ('/api/purchases/{id}',        [PurchaseController::class, 'show']);
+    $r->post  ('/api/purchases/{id}/payments', [PurchaseController::class, 'addPayment']);
+    $r->post  ('/api/purchases/{id}/payments', [PurchaseController::class, 'addPayment']);
+    $r->post  ('/api/purchases/{id}/payments', [PurchaseController::class, 'addPayment']);
     $r->post  ('/api/purchases/{id}/cancel', [PurchaseController::class, 'cancel']);
 };

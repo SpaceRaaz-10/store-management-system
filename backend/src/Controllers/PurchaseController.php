@@ -68,7 +68,6 @@ class PurchaseController
             Response::error('Validation failed', 422, ['supplier_id' => ['Supplier is inactive']]);
         }
 
-        // Resolve exchange rate for the transaction currency
         $currencyId = (int)$data['currency_id'];
         $baseId = (int)Database::pdo()->query("SELECT id FROM currencies WHERE is_base = 1 LIMIT 1")->fetchColumn();
         $rate = $this->resolveRate($currencyId, $baseId);
@@ -76,7 +75,6 @@ class PurchaseController
             Response::error('Validation failed', 422, ['currency_id' => ['No active exchange rate for this currency']]);
         }
 
-        // Build items
         $items = [];
         $subtotal = 0.0;
         foreach ($data['items'] as $row) {
@@ -103,7 +101,6 @@ class PurchaseController
             ];
         }
 
-        // Order-level discount
         $discountType = $data['discount_type'] ?? null;
         $discountValue = (float)($data['discount_value'] ?? 0);
         $discountAmount = 0.0;
@@ -114,7 +111,6 @@ class PurchaseController
         }
         $discountAmount = min($discountAmount, $subtotal);
 
-        // Tax on (subtotal - discount)
         $taxRate = (float)($data['tax_rate'] ?? 0);
         $taxable = $subtotal - $discountAmount;
         $taxAmount = $taxRate > 0 ? round($taxable * $taxRate / 100, 2) : 0.0;
@@ -155,6 +151,32 @@ class PurchaseController
         ], Auth::id());
 
         Response::created($this->repo->findById($purchaseId), 'Purchase created');
+    }
+
+    public function addPayment(string $id): void
+    {
+        $pid = (int)$id;
+        $purchase = $this->repo->findById($pid);
+        if (!$purchase) Response::error('Purchase not found', 404);
+        if ($purchase['status'] !== 'completed') Response::error('Cannot pay a cancelled purchase', 409);
+
+        $data = Request::json();
+        $amount = (float)($data['amount'] ?? 0);
+        $methodId = (int)($data['payment_method_id'] ?? 0);
+        $note = trim((string)($data['note'] ?? '')) ?: null;
+
+        $errors = [];
+        if ($amount <= 0) $errors['amount'][] = 'Amount must be greater than 0';
+        if ($methodId <= 0) $errors['payment_method_id'][] = 'Payment method is required';
+        if ((float)$purchase['due_amount'] <= 0) $errors['amount'][] = 'This purchase is already fully paid';
+        if ($errors) Response::error('Validation failed', 422, $errors);
+
+        try {
+            $this->repo->addPayment($pid, $amount, $methodId, Auth::id(), $note);
+            Response::ok($this->repo->findById($pid), 'Payment recorded');
+        } catch (\RuntimeException $e) {
+            Response::error($e->getMessage(), 422);
+        }
     }
 
     public function cancel(string $id): void

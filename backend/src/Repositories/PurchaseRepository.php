@@ -93,6 +93,16 @@ class PurchaseRepository
         $items->execute([$id]);
         $purchase['items'] = $items->fetchAll();
 
+        $payments = $pdo->prepare(
+            'SELECT pay.*, pm.name AS method_name
+             FROM payments pay
+             LEFT JOIN payment_methods pm ON pm.id = pay.payment_method_id
+             WHERE pay.payable_type = "purchase" AND pay.payable_id = ?
+             ORDER BY pay.payment_date ASC, pay.id ASC'
+        );
+        $payments->execute([$id]);
+        $purchase['payments'] = $payments->fetchAll();
+
         return $purchase;
     }
 
@@ -189,7 +199,6 @@ class PurchaseRepository
                 $stockStmt->execute([$it['quantity'], $it['product_id']]);
             }
 
-            // Initial payment
             if ($d['paid_amount'] > 0 && !empty($d['payment_method_id'])) {
                 $payStmt = $pdo->prepare(
                     'INSERT INTO payments
@@ -213,6 +222,59 @@ class PurchaseRepository
 
             $pdo->commit();
             return $purchaseId;
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    public function addPayment(int $id, float $amount, int $methodId, int $userId, ?string $note = null): void
+    {
+        $pdo = Database::pdo();
+        $pdo->beginTransaction();
+        try {
+            $purchase = $this->findById($id);
+            if (!$purchase) throw new \RuntimeException('Purchase not found');
+            if ($purchase['status'] !== 'completed') throw new \RuntimeException('Cannot pay a cancelled purchase');
+
+            $due = (float)$purchase['due_amount'];
+            if ($amount <= 0) throw new \RuntimeException('Payment amount must be greater than 0');
+            if ($amount > $due + 0.001) {
+                throw new \RuntimeException('Payment exceeds the due amount (' . number_format($due, 2) . ')');
+            }
+
+            $rate = (float)$purchase['exchange_rate_to_base'];
+
+            $payStmt = $pdo->prepare(
+                'INSERT INTO payments
+                 (payable_type, payable_id, currency_id, amount,
+                  exchange_rate_to_base, amount_in_transaction_currency, amount_base,
+                  payment_method_id, wallet_provider_id, reference_no, payment_date, user_id, note)
+                 VALUES ("purchase", ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NOW(), ?, ?)'
+            );
+            $payStmt->execute([
+                $id,
+                (int)$purchase['currency_id'],
+                $amount,
+                $rate,
+                $amount,
+                round($amount * $rate, 2),
+                $methodId,
+                $userId,
+                $note ?: 'Additional payment',
+            ]);
+
+            $newPaid = round((float)$purchase['paid_amount'] + $amount, 2);
+            $newDue = round((float)$purchase['total'] - $newPaid, 2);
+            if ($newDue < 0) $newDue = 0.0;
+            $newStatus = $newPaid <= 0 ? 'unpaid' : ($newDue <= 0.001 ? 'paid' : 'partial');
+
+            $upd = $pdo->prepare(
+                'UPDATE purchases SET paid_amount = ?, due_amount = ?, payment_status = ? WHERE id = ?'
+            );
+            $upd->execute([$newPaid, $newDue, $newStatus, $id]);
+
+            $pdo->commit();
         } catch (\Throwable $e) {
             $pdo->rollBack();
             throw $e;

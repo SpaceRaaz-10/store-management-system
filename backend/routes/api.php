@@ -10,6 +10,7 @@ use App\Controllers\SupplierController;
 use App\Controllers\PurchaseController;
 use App\Controllers\CurrencyController;
 use App\Controllers\PaymentMethodController;
+use App\Controllers\InventoryController;
 
 return function (Router $r): void {
 
@@ -23,9 +24,9 @@ return function (Router $r): void {
     $r->post('/api/auth/logout', [AuthController::class, 'logout']);
     $r->get ('/api/auth/me',     [AuthController::class, 'me']);
 
-    // Currencies + payment methods
-    $r->get('/api/currencies',       [CurrencyController::class, 'index']);
-    $r->get('/api/payment-methods',  [PaymentMethodController::class, 'index']);
+    // Reference data
+    $r->get('/api/currencies',      [CurrencyController::class, 'index']);
+    $r->get('/api/payment-methods', [PaymentMethodController::class, 'index']);
 
     // Categories
     $r->get   ('/api/categories',                 [CategoryController::class, 'index']);
@@ -72,7 +73,11 @@ return function (Router $r): void {
     $r->post  ('/api/purchases',             [PurchaseController::class, 'store']);
     $r->get   ('/api/purchases/{id}',        [PurchaseController::class, 'show']);
     $r->post  ('/api/purchases/{id}/payments', [PurchaseController::class, 'addPayment']);
-    $r->post  ('/api/purchases/{id}/payments', [PurchaseController::class, 'addPayment']);
-    $r->post  ('/api/purchases/{id}/payments', [PurchaseController::class, 'addPayment']);
     $r->post  ('/api/purchases/{id}/cancel', [PurchaseController::class, 'cancel']);
+
+    // Inventory
+    $r->get ('/api/inventory',            [InventoryController::class, 'stock']);
+    $r->get ('/api/inventory/movements',  [InventoryController::class, 'movements']);
+    $r->get ('/api/inventory/low-stock',  [InventoryController::class, 'lowStock']);
+    $r->post('/api/inventory/adjust',     [InventoryController::class, 'adjust']);
 };

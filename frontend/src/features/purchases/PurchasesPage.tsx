@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, Eye, XCircle, Search, Calendar, Printer } from 'lucide-react';
+import {
+  Plus, Eye, XCircle, Search, Calendar, Printer, ChevronRight, ChevronDown, Package, Banknote,
+} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
@@ -11,13 +13,15 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Pagination } from '@/components/common/Pagination';
 import { PurchaseViewDialog } from './PurchaseViewDialog';
+import { AddPurchasePaymentDialog } from './AddPurchasePaymentDialog';
+import { openPurchaseInvoice } from './purchaseInvoiceHtml';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
-import { listPurchases, cancelPurchase } from '@/services/purchases';
+import { listPurchases, cancelPurchase, getPurchase } from '@/services/purchases';
 import { listSuppliers } from '@/services/suppliers';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, formatQty } from '@/lib/format';
 import type { ApiError } from '@/services/http';
-import type { PurchaseListItem, Supplier } from '@/types/models';
+import type { Purchase, PurchaseListItem, Supplier } from '@/types/models';
 
 export function PurchasesPage() {
   const toast = useToast();
@@ -43,6 +47,14 @@ export function PurchasesPage() {
   const [viewId, setViewId] = useState<number | null>(null);
   const [confirmCancel, setConfirmCancel] = useState<PurchaseListItem | null>(null);
   const [acting, setActing] = useState(false);
+  const [printingId, setPrintingId] = useState<number | null>(null);
+  const [payingId, setPayingId] = useState<number | null>(null);
+
+  // ---- Expansion state ----
+  // Cache full purchase data keyed by id so we only fetch once per row
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [expandedData, setExpandedData] = useState<Record<number, Purchase>>({});
+  const [expandingId, setExpandingId] = useState<number | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(search), 350);
@@ -74,6 +86,8 @@ export function PurchasesPage() {
       setRows(res.rows);
       setTotalPages(res.totalPages);
       setTotal(res.total);
+      // Clear expansion when the list changes
+      setExpandedId(null);
     } catch (err) {
       toast.error((err as ApiError).message || 'Failed to load purchases');
     } finally {
@@ -83,13 +97,38 @@ export function PurchasesPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  // Keep URL in sync when the supplier filter changes
   useEffect(() => {
     const current = params.get('supplier_id') ?? '';
     if (current === supplierFilter) return;
     if (supplierFilter) setParams({ supplier_id: supplierFilter });
     else setParams({});
   }, [supplierFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleToggleExpand = async (id: number) => {
+    // Collapse if it's already open
+    if (expandedId === id) {
+      setExpandedId(null);
+      return;
+    }
+
+    // Already cached — just open
+    if (expandedData[id]) {
+      setExpandedId(id);
+      return;
+    }
+
+    // Fetch and cache
+    setExpandingId(id);
+    try {
+      const full = await getPurchase(id);
+      setExpandedData((prev) => ({ ...prev, [id]: full }));
+      setExpandedId(id);
+    } catch (err) {
+      toast.error((err as ApiError).message || 'Failed to load purchase items');
+    } finally {
+      setExpandingId(null);
+    }
+  };
 
   const handleCancel = async () => {
     if (!confirmCancel) return;
@@ -98,11 +137,24 @@ export function PurchasesPage() {
       await cancelPurchase(confirmCancel.id);
       toast.success('Purchase cancelled — stock reversed');
       setConfirmCancel(null);
+      setExpandedData({}); // invalidate cache
       load();
     } catch (err) {
       toast.error((err as ApiError).message || 'Cancellation failed');
     } finally {
       setActing(false);
+    }
+  };
+
+  const handleRowPrint = async (id: number) => {
+    setPrintingId(id);
+    try {
+      const full = expandedData[id] ?? (await getPurchase(id));
+      openPurchaseInvoice(full, true);
+    } catch {
+      toast.error('Failed to load invoice');
+    } finally {
+      setTimeout(() => setPrintingId(null), 400);
     }
   };
 
@@ -204,9 +256,11 @@ export function PurchasesPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-slate-50 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                    <th className="w-8 px-2 py-3"></th>
                     <th className="px-4 py-3">Invoice</th>
                     <th className="px-4 py-3">Date</th>
                     <th className="px-4 py-3">Supplier</th>
+                    <th className="px-4 py-3">Items</th>
                     <th className="px-4 py-3 text-right">Total</th>
                     <th className="px-4 py-3 text-right">Paid</th>
                     <th className="px-4 py-3">Payment</th>
@@ -215,46 +269,160 @@ export function PurchasesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((p) => (
-                    <tr key={p.id} className="border-b last:border-0 hover:bg-slate-50/60">
-                      <td className="px-4 py-3 font-mono text-xs">{p.invoice_no}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{p.purchase_date}</td>
-                      <td className="px-4 py-3 font-medium">{p.supplier_name}</td>
-                      <td className="px-4 py-3 text-right tabular-nums">
-                        {formatMoney(p.total, p.currency_symbol)}
-                        {p.currency_code !== 'NPR' && (
-                          <div className="text-xs text-muted-foreground">{p.currency_code}</div>
+                  {rows.map((p) => {
+                    const isExpanded = expandedId === p.id;
+                    const isExpanding = expandingId === p.id;
+                    const detail = expandedData[p.id];
+                    const itemCount = detail?.items.length ?? null;
+
+                    return (
+                      <>
+                        <tr
+                          key={p.id}
+                          className={
+                            'border-b transition-colors ' +
+                            (isExpanded ? 'bg-slate-50' : 'hover:bg-slate-50/60')
+                          }
+                        >
+                          <td className="px-2 py-3">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleExpand(p.id)}
+                              disabled={isExpanding}
+                              className="flex h-6 w-6 items-center justify-center rounded hover:bg-accent disabled:opacity-50"
+                              title={isExpanded ? 'Collapse' : 'Expand to view items'}
+                            >
+                              {isExpanding ? (
+                                <Spinner className="!py-0 !px-0" />
+                              ) : isExpanded ? (
+                                <ChevronDown className="h-4 w-4" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4" />
+                              )}
+                            </button>
+                          </td>
+                          <td className="px-4 py-3 font-mono text-xs">{p.invoice_no}</td>
+                          <td className="px-4 py-3 text-muted-foreground">{p.purchase_date}</td>
+                          <td className="px-4 py-3 font-medium">{p.supplier_name}</td>
+                          <td className="px-4 py-3 text-muted-foreground text-xs">
+                            {itemCount !== null ? (
+                              `${itemCount} item${itemCount === 1 ? '' : 's'}`
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleToggleExpand(p.id)}
+                                className="text-primary hover:underline"
+                              >
+                                Show items
+                              </button>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right tabular-nums">
+                            {formatMoney(p.total, p.currency_symbol)}
+                            {p.currency_code !== 'NPR' && (
+                              <div className="text-xs text-muted-foreground">{p.currency_code}</div>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
+                            {formatMoney(p.paid_amount, p.currency_symbol)}
+                          </td>
+                          <td className="px-4 py-3">
+                            <Badge variant={
+                              p.payment_status === 'paid' ? 'success' :
+                              p.payment_status === 'partial' ? 'warning' : 'secondary'
+                            }>{p.payment_status}</Badge>
+                          </td>
+                          <td className="px-4 py-3">
+                            <Badge variant={p.status === 'completed' ? 'success' : 'destructive'}>{p.status}</Badge>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                title="View details"
+                                onClick={() => setViewId(p.id)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                title="Print invoice"
+                                disabled={printingId === p.id}
+                                onClick={() => handleRowPrint(p.id)}
+                              >
+                                <Printer className="h-4 w-4" />
+                              </Button>
+                              {p.status === 'completed' && Number(p.due_amount) > 0.001 && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  title="Add payment"
+                                  onClick={async () => {
+                                  try {
+                                    const full = expandedData[p.id] ?? (await getPurchase(p.id));
+                                    setExpandedData((prev) => ({ ...prev, [p.id]: full }));
+                                    setPayingId(p.id);
+                                  } catch {
+                                    toast.error('Failed to load purchase');
+                                  }
+                                }}
+                                >
+                                  <Banknote className="h-4 w-4 text-emerald-600" />
+                                </Button>
+                              )}
+                              {isAdmin && p.status === 'completed' && (
+                                <Button variant="ghost" size="icon" title="Cancel" onClick={() => setConfirmCancel(p)}>
+                                  <XCircle className="h-4 w-4 text-destructive" />
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+
+                        {isExpanded && detail && (
+                          <tr key={`${p.id}-detail`} className="border-b bg-slate-50/70">
+                            <td colSpan={10} className="px-4 py-3">
+                              <div className="rounded-md border bg-white">
+                                <div className="flex items-center gap-2 border-b bg-slate-50/60 px-4 py-2 text-xs font-medium text-muted-foreground">
+                                  <Package className="h-3.5 w-3.5" />
+                                  Items in {detail.invoice_no}
+                                </div>
+                                <table className="w-full text-sm">
+                                  <thead>
+                                    <tr className="text-left text-xs uppercase text-muted-foreground">
+                                      <th className="px-4 py-2">Product</th>
+                                      <th className="px-4 py-2">SKU</th>
+                                      <th className="px-4 py-2 text-right">Qty</th>
+                                      <th className="px-4 py-2 text-right">Unit Cost</th>
+                                      <th className="px-4 py-2 text-right">Line Total</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {detail.items.map((it) => (
+                                      <tr key={it.id} className="border-t">
+                                        <td className="px-4 py-2 font-medium">{it.product_name}</td>
+                                        <td className="px-4 py-2 font-mono text-xs text-muted-foreground">{it.sku}</td>
+                                        <td className="px-4 py-2 text-right tabular-nums">{formatQty(it.quantity)}</td>
+                                        <td className="px-4 py-2 text-right tabular-nums">{formatMoney(it.unit_cost, detail.currency_symbol)}</td>
+                                        <td className="px-4 py-2 text-right tabular-nums font-medium">{formatMoney(it.line_total, detail.currency_symbol)}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                                {detail.notes && (
+                                  <div className="border-t bg-slate-50/40 px-4 py-2 text-xs text-muted-foreground">
+                                    <strong className="text-foreground">Notes:</strong> {detail.notes}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
                         )}
-                      </td>
-                      <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
-                        {formatMoney(p.paid_amount, p.currency_symbol)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge variant={
-                          p.payment_status === 'paid' ? 'success' :
-                          p.payment_status === 'partial' ? 'warning' : 'secondary'
-                        }>{p.payment_status}</Badge>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge variant={p.status === 'completed' ? 'success' : 'destructive'}>{p.status}</Badge>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="icon" title="View" onClick={() => setViewId(p.id)}>
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" title="Print" onClick={() => { setViewId(p.id); setTimeout(() => window.print(), 400); }}>
-                            <Printer className="h-4 w-4" />
-                          </Button>
-                          {isAdmin && p.status === 'completed' && (
-                            <Button variant="ghost" size="icon" title="Cancel" onClick={() => setConfirmCancel(p)}>
-                              <XCircle className="h-4 w-4 text-destructive" />
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                      </>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -271,6 +439,18 @@ export function PurchasesPage() {
         onClose={() => setViewId(null)}
         purchaseId={viewId}
       />
+
+      {payingId !== null && (
+        <AddPurchasePaymentDialog
+          open={true}
+          onClose={() => setPayingId(null)}
+          onSaved={() => {
+            setExpandedData({});
+            load();
+          }}
+          purchase={expandedData[payingId] ?? null}
+        />
+      )}
 
       <ConfirmDialog
         open={!!confirmCancel}

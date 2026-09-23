@@ -37,3 +37,14 @@ export async function createPurchase(payload: PurchasePayload): Promise<Purchase
 export async function cancelPurchase(id: number): Promise<void> {
   await http.post(`/api/purchases/${id}/cancel`);
 }
+
+export interface AddPaymentPayload {
+  amount: number;
+  payment_method_id: number;
+  note?: string | null;
+}
+
+export async function addPurchasePayment(id: number, payload: AddPaymentPayload): Promise<Purchase> {
+  const { data } = await http.post<ApiEnvelope<Purchase>>(`/api/purchases/${id}/payments`, payload);
+  return data.data;
+}

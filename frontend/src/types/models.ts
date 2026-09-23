@@ -136,3 +136,54 @@ export interface PurchasePayload {
     unit_cost: number;
   }>;
 }
+
+export interface StockRow {
+  id: number;
+  name: string;
+  sku: string;
+  barcode: string | null;
+  unit: string;
+  cost_price: string;
+  selling_price: string;
+  stock_qty: string;
+  reorder_level: string;
+  status: 'active' | 'inactive';
+  image_path: string | null;
+  category_id: number | null;
+  category_name: string | null;
+}
+
+export interface StockMovement {
+  id: number;
+  product_id: number;
+  product_name: string;
+  sku: string;
+  type: 'purchase' | 'sale' | 'return' | 'adjustment' | 'void' | 'correction';
+  quantity: string;
+  reference_type: string | null;
+  reference_id: number | null;
+  unit_cost_base: string | null;
+  user_id: number | null;
+  user_name: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+export interface LowStockRow {
+  id: number;
+  name: string;
+  sku: string;
+  unit: string;
+  stock_qty: string;
+  reorder_level: string;
+  status: 'active' | 'inactive';
+  image_path: string | null;
+  category_name: string | null;
+}
+
+export interface AdjustStockPayload {
+  product_id: number;
+  mode: 'set' | 'delta';
+  value: number;
+  reason: string;
+}

@@ -9,6 +9,9 @@ import { CustomersPage } from '@/features/customers/CustomersPage';
 import { SuppliersPage } from '@/features/suppliers/SuppliersPage';
 import { PurchasesPage } from '@/features/purchases/PurchasesPage';
 import { NewPurchasePage } from '@/features/purchases/NewPurchasePage';
+import { StockPage } from '@/features/inventory/StockPage';
+import { MovementsPage } from '@/features/inventory/MovementsPage';
+import { LowStockPage } from '@/features/inventory/LowStockPage';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -24,6 +27,9 @@ export const router = createBrowserRouter([
       { path: 'dashboard', element: <DashboardPage /> },
       { path: 'categories', element: <CategoriesPage /> },
       { path: 'products', element: <ProductsPage /> },
+      { path: 'inventory', element: <StockPage /> },
+      { path: 'inventory/movements', element: <MovementsPage /> },
+      { path: 'inventory/low-stock', element: <LowStockPage /> },
       { path: 'customers', element: <CustomersPage /> },
       { path: 'suppliers', element: <SuppliersPage /> },
       { path: 'purchases', element: <PurchasesPage /> },

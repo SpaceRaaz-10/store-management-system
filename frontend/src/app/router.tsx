@@ -5,6 +5,8 @@ import { LoginPage } from '@/features/auth/LoginPage';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { CategoriesPage } from '@/features/categories/CategoriesPage';
 import { ProductsPage } from '@/features/products/ProductsPage';
+import { CustomersPage } from '@/features/customers/CustomersPage';
+import { SuppliersPage } from '@/features/suppliers/SuppliersPage';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -20,6 +22,8 @@ export const router = createBrowserRouter([
       { path: 'dashboard', element: <DashboardPage /> },
       { path: 'categories', element: <CategoriesPage /> },
       { path: 'products', element: <ProductsPage /> },
+      { path: 'customers', element: <CustomersPage /> },
+      { path: 'suppliers', element: <SuppliersPage /> },
     ],
   },
   { path: '*', element: <Navigate to="/dashboard" replace /> },

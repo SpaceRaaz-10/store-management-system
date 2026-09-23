@@ -1,5 +1,7 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { Store, LayoutDashboard, Tags, Package, LogOut } from 'lucide-react';
+import {
+  Store, LayoutDashboard, Tags, Package, Users, Truck, LogOut,
+} from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
@@ -8,6 +10,8 @@ const nav = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/categories', label: 'Categories', icon: Tags },
   { to: '/products', label: 'Products', icon: Package },
+  { to: '/customers', label: 'Customers', icon: Users },
+  { to: '/suppliers', label: 'Suppliers', icon: Truck },
 ];
 
 export function AppLayout() {

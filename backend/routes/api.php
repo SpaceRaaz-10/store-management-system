@@ -7,6 +7,9 @@ use App\Controllers\ProductController;
 use App\Controllers\ProductImageController;
 use App\Controllers\CustomerController;
 use App\Controllers\SupplierController;
+use App\Controllers\PurchaseController;
+use App\Controllers\CurrencyController;
+use App\Controllers\PaymentMethodController;
 
 return function (Router $r): void {
 
@@ -19,6 +22,10 @@ return function (Router $r): void {
     $r->post('/api/auth/login',  [AuthController::class, 'login']);
     $r->post('/api/auth/logout', [AuthController::class, 'logout']);
     $r->get ('/api/auth/me',     [AuthController::class, 'me']);
+
+    // Currencies + payment methods
+    $r->get('/api/currencies',       [CurrencyController::class, 'index']);
+    $r->get('/api/payment-methods',  [PaymentMethodController::class, 'index']);
 
     // Categories
     $r->get   ('/api/categories',                 [CategoryController::class, 'index']);
@@ -59,4 +66,10 @@ return function (Router $r): void {
     $r->post  ('/api/suppliers/{id}/activate',   [SupplierController::class, 'activate']);
     $r->post  ('/api/suppliers/{id}/deactivate', [SupplierController::class, 'deactivate']);
     $r->delete('/api/suppliers/{id}',            [SupplierController::class, 'destroy']);
+
+    // Purchases
+    $r->get   ('/api/purchases',             [PurchaseController::class, 'index']);
+    $r->post  ('/api/purchases',             [PurchaseController::class, 'store']);
+    $r->get   ('/api/purchases/{id}',        [PurchaseController::class, 'show']);
+    $r->post  ('/api/purchases/{id}/cancel', [PurchaseController::class, 'cancel']);
 };

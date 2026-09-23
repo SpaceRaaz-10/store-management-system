@@ -7,6 +7,8 @@ import { CategoriesPage } from '@/features/categories/CategoriesPage';
 import { ProductsPage } from '@/features/products/ProductsPage';
 import { CustomersPage } from '@/features/customers/CustomersPage';
 import { SuppliersPage } from '@/features/suppliers/SuppliersPage';
+import { PurchasesPage } from '@/features/purchases/PurchasesPage';
+import { NewPurchasePage } from '@/features/purchases/NewPurchasePage';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -24,6 +26,8 @@ export const router = createBrowserRouter([
       { path: 'products', element: <ProductsPage /> },
       { path: 'customers', element: <CustomersPage /> },
       { path: 'suppliers', element: <SuppliersPage /> },
+      { path: 'purchases', element: <PurchasesPage /> },
+      { path: 'purchases/new', element: <NewPurchasePage /> },
     ],
   },
   { path: '*', element: <Navigate to="/dashboard" replace /> },

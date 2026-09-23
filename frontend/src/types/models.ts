@@ -56,3 +56,83 @@ export interface Supplier {
   created_at: string;
   updated_at: string;
 }
+
+export interface Currency {
+  id: number;
+  code: string;
+  name: string;
+  symbol: string;
+  decimal_places: number;
+  is_base: 0 | 1;
+  is_active: 0 | 1;
+  rate_to_base: number | null;
+}
+
+export interface PaymentMethod {
+  id: number;
+  code: string;
+  name: string;
+  is_active: number;
+}
+
+export interface PurchaseListItem {
+  id: number;
+  invoice_no: string;
+  supplier_id: number;
+  supplier_name: string;
+  user_id: number;
+  user_name: string;
+  currency_id: number;
+  currency_code: string;
+  currency_symbol: string;
+  exchange_rate_to_base: string;
+  purchase_date: string;
+  subtotal: string;
+  discount_amount: string;
+  tax_amount: string;
+  total: string;
+  total_base: string;
+  paid_amount: string;
+  due_amount: string;
+  payment_status: 'unpaid' | 'partial' | 'paid';
+  status: 'draft' | 'completed' | 'cancelled';
+  notes: string | null;
+  created_at: string;
+}
+
+export interface PurchaseItem {
+  id: number;
+  purchase_id: number;
+  product_id: number;
+  product_name: string;
+  sku: string;
+  quantity: string;
+  unit_cost: string;
+  unit_cost_base: string;
+  line_total: string;
+  line_total_base: string;
+}
+
+export interface Purchase extends PurchaseListItem {
+  supplier_contact: string | null;
+  supplier_phone: string | null;
+  supplier_email: string | null;
+  items: PurchaseItem[];
+}
+
+export interface PurchasePayload {
+  supplier_id: number;
+  currency_id: number;
+  purchase_date: string;
+  discount_type: 'fixed' | 'percent' | null;
+  discount_value: number;
+  tax_rate: number;
+  paid_amount: number;
+  payment_method_id: number | null;
+  notes: string | null;
+  items: Array<{
+    product_id: number;
+    quantity: number;
+    unit_cost: number;
+  }>;
+}

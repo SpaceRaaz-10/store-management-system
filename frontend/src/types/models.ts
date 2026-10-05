@@ -272,3 +272,80 @@ export interface SalePayload {
     unit_price: number;
   }>;
 }
+
+export interface ReturnItem {
+  id: number;
+  return_request_id: number;
+  sale_item_id: number;
+  product_id: number;
+  product_name: string;
+  sku: string;
+  quantity: string;
+  unit_price: string;
+  line_total: string;
+  line_total_base: string;
+}
+
+export interface ReturnRequest {
+  id: number;
+  sale_id: number;
+  invoice_no: string;
+  sale_date: string;
+  sale_total: string;
+  customer_id: number | null;
+  customer_name: string | null;
+  customer_phone: string | null;
+  requested_by: number;
+  requested_by_name: string;
+  approved_by: number | null;
+  approved_by_name: string | null;
+  currency_id: number;
+  currency_code: string;
+  currency_symbol: string;
+  exchange_rate_to_base: string;
+  reason: string;
+  notes: string | null;
+  subtotal: string;
+  tax_amount: string;
+  total: string;
+  total_base: string;
+  refund_method: 'cash' | 'original_method' | 'store_credit' | 'other';
+  refund_amount: string;
+  refund_amount_base: string;
+  status: 'pending' | 'approved' | 'rejected' | 'completed' | 'cancelled';
+  decision_note: string | null;
+  requested_at: string;
+  decided_at: string | null;
+  completed_at: string | null;
+  items?: ReturnItem[];
+}
+
+export interface CreateReturnPayload {
+  reason: string;
+  notes?: string | null;
+  refund_method?: 'cash' | 'original_method' | 'store_credit' | 'other';
+  items: Array<{ sale_item_id: number; quantity: number }>;
+}
+
+export interface VoidRequest {
+  id: number;
+  sale_id: number;
+  invoice_no: string;
+  sale_date: string;
+  sale_total: string;
+  customer_id: number | null;
+  customer_name: string | null;
+  currency_id: number;
+  currency_code: string;
+  currency_symbol: string;
+  requested_by: number;
+  requested_by_name: string;
+  approved_by: number | null;
+  approved_by_name: string | null;
+  reason: string;
+  status: 'pending' | 'approved' | 'rejected' | 'completed';
+  decision_note: string | null;
+  requested_at: string;
+  decided_at: string | null;
+  completed_at: string | null;
+}

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Plus, Eye, Search, Calendar, Printer, Banknote, ChevronRight, ChevronDown,
-  Package, TrendingUp,
+  Package, TrendingUp, RotateCcw, XCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -13,6 +13,8 @@ import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Pagination } from '@/components/common/Pagination';
 import { SaleViewDialog } from './SaleViewDialog';
+import { NewReturnDialog } from '@/features/returns/NewReturnDialog';
+import { NewVoidDialog } from '@/features/voids/NewVoidDialog';
 import { AddSalePaymentDialog } from './AddSalePaymentDialog';
 import { openSaleInvoice } from './saleInvoiceHtml';
 import { useToast } from '@/context/ToastContext';
@@ -50,6 +52,8 @@ export function SalesPage() {
   const [expandingId, setExpandingId] = useState<number | null>(null);
 
   const [payingId, setPayingId] = useState<number | null>(null);
+  const [returnSale, setReturnSale] = useState<Sale | null>(null);
+  const [voidSale, setVoidSale] = useState<Sale | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(search), 350);
@@ -130,6 +134,26 @@ export function SalesPage() {
       const full = expandedData[id] ?? (await getSale(id));
       setExpandedData((prev) => ({ ...prev, [id]: full }));
       setPayingId(id);
+    } catch {
+      toast.error('Failed to load sale');
+    }
+  };
+
+  const handleOpenReturn = async (id: number) => {
+    try {
+      const full = expandedData[id] ?? (await getSale(id));
+      setExpandedData((prev) => ({ ...prev, [id]: full }));
+      setReturnSale(full);
+    } catch {
+      toast.error('Failed to load sale');
+    }
+  };
+
+  const handleOpenVoid = async (id: number) => {
+    try {
+      const full = expandedData[id] ?? (await getSale(id));
+      setExpandedData((prev) => ({ ...prev, [id]: full }));
+      setVoidSale(full);
     } catch {
       toast.error('Failed to load sale');
     }
@@ -352,6 +376,16 @@ export function SalesPage() {
                                   <Banknote className="h-4 w-4 text-emerald-600" />
                                 </Button>
                               )}
+                              {s.status === 'completed' && (
+                                <Button variant="ghost" size="icon" title="Request return" onClick={() => handleOpenReturn(s.id)}>
+                                  <RotateCcw className="h-4 w-4 text-amber-600" />
+                                </Button>
+                              )}
+                              {(s.status === 'completed' || s.status === 'void_requested') && (
+                                <Button variant="ghost" size="icon" title="Request void" onClick={() => handleOpenVoid(s.id)}>
+                                  <XCircle className="h-4 w-4 text-destructive" />
+                                </Button>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -421,6 +455,26 @@ export function SalesPage() {
           sale={expandedData[payingId] ?? null}
         />
       )}
+
+      <NewReturnDialog
+        open={returnSale !== null}
+        onClose={() => setReturnSale(null)}
+        onSaved={() => {
+          setExpandedData({});
+          load();
+        }}
+        sale={returnSale}
+      />
+
+      <NewVoidDialog
+        open={voidSale !== null}
+        onClose={() => setVoidSale(null)}
+        onSaved={() => {
+          setExpandedData({});
+          load();
+        }}
+        sale={voidSale}
+      />
     </div>
   );
 }

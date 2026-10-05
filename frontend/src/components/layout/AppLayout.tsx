@@ -1,7 +1,7 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
   Store, LayoutDashboard, Tags, Package, Users, Truck, ShoppingCart, Boxes,
-  Receipt, LogOut,
+  Receipt, RotateCcw, XCircle, LogOut,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
@@ -13,6 +13,8 @@ const nav = [
   { to: '/products', label: 'Products', icon: Package },
   { to: '/inventory', label: 'Inventory', icon: Boxes },
   { to: '/sales', label: 'Sales', icon: Receipt },
+  { to: '/returns', label: 'Returns', icon: RotateCcw },
+  { to: '/voids', label: 'Voids', icon: XCircle },
   { to: '/customers', label: 'Customers', icon: Users },
   { to: '/suppliers', label: 'Suppliers', icon: Truck },
   { to: '/purchases', label: 'Purchases', icon: ShoppingCart },

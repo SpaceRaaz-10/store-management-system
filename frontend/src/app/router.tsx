@@ -14,6 +14,8 @@ import { MovementsPage } from '@/features/inventory/MovementsPage';
 import { LowStockPage } from '@/features/inventory/LowStockPage';
 import { SalesPage } from '@/features/sales/SalesPage';
 import { NewSalePage } from '@/features/sales/NewSalePage';
+import { ReturnsPage } from '@/features/returns/ReturnsPage';
+import { VoidsPage } from '@/features/voids/VoidsPage';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -34,6 +36,8 @@ export const router = createBrowserRouter([
       { path: 'inventory/low-stock', element: <LowStockPage /> },
       { path: 'sales', element: <SalesPage /> },
       { path: 'sales/new', element: <NewSalePage /> },
+      { path: 'returns', element: <ReturnsPage /> },
+      { path: 'voids', element: <VoidsPage /> },
       { path: 'customers', element: <CustomersPage /> },
       { path: 'suppliers', element: <SuppliersPage /> },
       { path: 'purchases', element: <PurchasesPage /> },

@@ -9,6 +9,8 @@ use App\Controllers\CustomerController;
 use App\Controllers\SupplierController;
 use App\Controllers\PurchaseController;
 use App\Controllers\SaleController;
+use App\Controllers\ReturnController;
+use App\Controllers\VoidController;
 use App\Controllers\CurrencyController;
 use App\Controllers\PaymentMethodController;
 use App\Controllers\InventoryController;
@@ -81,6 +83,20 @@ return function (Router $r): void {
     $r->post  ('/api/sales',             [SaleController::class, 'store']);
     $r->get   ('/api/sales/{id}',        [SaleController::class, 'show']);
     $r->post  ('/api/sales/{id}/payments', [SaleController::class, 'addPayment']);
+    $r->post  ('/api/sales/{id}/returns', [ReturnController::class, 'store']);
+    $r->post  ('/api/sales/{id}/void',    [VoidController::class, 'store']);
+
+    // Returns
+    $r->get ('/api/returns',                [ReturnController::class, 'index']);
+    $r->get ('/api/returns/{id}',           [ReturnController::class, 'show']);
+    $r->post('/api/returns/{id}/approve',   [ReturnController::class, 'approve']);
+    $r->post('/api/returns/{id}/reject',    [ReturnController::class, 'reject']);
+
+    // Voids
+    $r->get ('/api/voids',               [VoidController::class, 'index']);
+    $r->get ('/api/voids/{id}',          [VoidController::class, 'show']);
+    $r->post('/api/voids/{id}/approve',  [VoidController::class, 'approve']);
+    $r->post('/api/voids/{id}/reject',   [VoidController::class, 'reject']);
 
     // Inventory
     $r->get ('/api/inventory',            [InventoryController::class, 'stock']);

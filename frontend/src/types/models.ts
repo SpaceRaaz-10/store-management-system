@@ -187,3 +187,88 @@ export interface AdjustStockPayload {
   value: number;
   reason: string;
 }
+
+export interface SaleListItem {
+  id: number;
+  invoice_no: string;
+  customer_id: number | null;
+  customer_name: string | null;
+  user_id: number;
+  user_name: string;
+  currency_id: number;
+  currency_code: string;
+  currency_symbol: string;
+  exchange_rate_to_base: string;
+  sale_date: string;
+  subtotal: string;
+  discount_amount: string;
+  tax_amount: string;
+  total: string;
+  subtotal_base: string;
+  total_base: string;
+  cogs_base: string;
+  profit_base: string;
+  paid_amount: string;
+  due_amount: string;
+  payment_status: 'unpaid' | 'partial' | 'paid';
+  status: 'completed' | 'voided' | 'partially_returned' | 'returned';
+  notes: string | null;
+  created_at: string;
+}
+
+export interface SaleItem {
+  id: number;
+  sale_id: number;
+  product_id: number;
+  product_name: string;
+  sku: string;
+  quantity: string;
+  returned_quantity: string;
+  unit_price: string;
+  unit_price_base: string;
+  line_total: string;
+  line_total_base: string;
+  cogs_base: string;
+}
+
+export interface SalePayment {
+  id: number;
+  payable_type: string;
+  payable_id: number;
+  currency_id: number;
+  amount: string;
+  exchange_rate_to_base: string;
+  amount_in_transaction_currency: string;
+  amount_base: string;
+  payment_method_id: number;
+  method_name: string | null;
+  reference_no: string | null;
+  payment_date: string;
+  user_id: number;
+  note: string | null;
+}
+
+export interface Sale extends SaleListItem {
+  customer_phone: string | null;
+  customer_email: string | null;
+  customer_address: string | null;
+  items: SaleItem[];
+  payments: SalePayment[];
+}
+
+export interface SalePayload {
+  customer_id: number | null;
+  currency_id: number;
+  sale_date: string;
+  discount_type: 'fixed' | 'percent' | null;
+  discount_value: number;
+  tax_rate: number;
+  paid_amount: number;
+  payment_method_id: number | null;
+  notes: string | null;
+  items: Array<{
+    product_id: number;
+    quantity: number;
+    unit_price: number;
+  }>;
+}

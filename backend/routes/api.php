@@ -8,6 +8,7 @@ use App\Controllers\ProductImageController;
 use App\Controllers\CustomerController;
 use App\Controllers\SupplierController;
 use App\Controllers\PurchaseController;
+use App\Controllers\SaleController;
 use App\Controllers\CurrencyController;
 use App\Controllers\PaymentMethodController;
 use App\Controllers\InventoryController;
@@ -74,6 +75,12 @@ return function (Router $r): void {
     $r->get   ('/api/purchases/{id}',        [PurchaseController::class, 'show']);
     $r->post  ('/api/purchases/{id}/payments', [PurchaseController::class, 'addPayment']);
     $r->post  ('/api/purchases/{id}/cancel', [PurchaseController::class, 'cancel']);
+
+    // Sales
+    $r->get   ('/api/sales',             [SaleController::class, 'index']);
+    $r->post  ('/api/sales',             [SaleController::class, 'store']);
+    $r->get   ('/api/sales/{id}',        [SaleController::class, 'show']);
+    $r->post  ('/api/sales/{id}/payments', [SaleController::class, 'addPayment']);
 
     // Inventory
     $r->get ('/api/inventory',            [InventoryController::class, 'stock']);

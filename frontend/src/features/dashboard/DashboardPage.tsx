@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, Legend,
+  BarChart, Bar, Legend, PieChart, Pie, Cell,
 } from 'recharts';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -228,8 +228,14 @@ export function DashboardPage() {
                       <Tooltip
                         formatter={(v: number) => [formatMoney(v, 'रु'), 'Revenue']}
                         contentStyle={{ fontSize: 12, borderRadius: 8 }}
+                        cursor={false}
                       />
-                      <Bar dataKey="revenue" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                      <Bar
+                        dataKey="revenue"
+                        fill="#3b82f6"
+                        radius={[0, 4, 4, 0]}
+                        activeBar={{ fill: '#1e40af', stroke: '#1e40af' }}
+                      />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -268,37 +274,126 @@ export function DashboardPage() {
             </Button>
           </CardHeader>
           <CardContent>
-            {stats.low_stock.length === 0 ? (
-              <div className="py-8 text-center text-sm text-muted-foreground">
-                All products are well-stocked.
-              </div>
-            ) : (
-              <div className="divide-y">
-                {stats.low_stock.map((p) => {
-                  const stock = Number(p.stock_qty);
-                  const reorder = Number(p.reorder_level);
-                  const shortfall = reorder - stock;
-                  return (
-                    <div key={p.id} className="flex items-center justify-between py-2">
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-medium">{p.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {p.sku} · {p.category_name ?? 'Uncategorized'}
+            {(() => {
+              const low = t.low_stock_count;
+              const healthy = Math.max(0, t.active_products - low);
+              const total = low + healthy;
+              const pct = total > 0 ? Math.round((low / total) * 100) : 0;
+              const pieData = [
+                { name: 'Healthy', value: healthy, color: '#10b981' },
+                { name: 'Low stock', value: low, color: '#f59e0b' },
+              ].filter((d) => d.value > 0);
+
+              if (total === 0) {
+                return (
+                  <div className="py-8 text-center text-sm text-muted-foreground">
+                    No products yet.
+                  </div>
+                );
+              }
+
+              return (
+                <>
+                  {/* Donut chart */}
+                  <div className="relative">
+                    <div className="h-52 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={pieData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={55}
+                            outerRadius={82}
+                            paddingAngle={pieData.length > 1 ? 2 : 0}
+                            dataKey="value"
+                            stroke="none"
+                            startAngle={90}
+                            endAngle={-270}
+                          >
+                            {pieData.map((entry) => (
+                              <Cell key={entry.name} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            formatter={(v: number, name: string) => [
+                              `${v} product${v === 1 ? '' : 's'}`,
+                              name,
+                            ]}
+                            contentStyle={{ fontSize: 12, borderRadius: 8 }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Center label */}
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                      <div className="text-center">
+                        <div
+                          className={
+                            'text-2xl font-bold tabular-nums ' +
+                            (low > 0 ? 'text-amber-600' : 'text-emerald-600')
+                          }
+                        >
+                          {low}
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-semibold text-amber-600 tabular-nums">
-                          {formatQty(stock)} {p.unit}
+                        <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                          Low stock
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          order +{formatQty(shortfall)}
+                        <div className="text-[10px] text-muted-foreground">
+                          {pct}% of {total}
                         </div>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                  </div>
+
+                  {/* Legend */}
+                  <div className="mt-1 flex items-center justify-center gap-4 text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                      <span className="text-muted-foreground">
+                        Healthy ({healthy})
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+                      <span className="text-muted-foreground">
+                        Low stock ({low})
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Top low-stock products */}
+                  {stats.low_stock.length > 0 && (
+                    <div className="mt-4 divide-y border-t">
+                      {stats.low_stock.slice(0, 3).map((p) => {
+                        const stock = Number(p.stock_qty);
+                        const reorder = Number(p.reorder_level);
+                        const shortfall = reorder - stock;
+                        return (
+                          <div key={p.id} className="flex items-center justify-between py-2">
+                            <div className="min-w-0">
+                              <div className="truncate text-sm font-medium">{p.name}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {p.sku} · {p.category_name ?? 'Uncategorized'}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-semibold text-amber-600 tabular-nums">
+                                {formatQty(stock)} {p.unit}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                order +{formatQty(shortfall)}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </CardContent>
         </Card>
       </div>

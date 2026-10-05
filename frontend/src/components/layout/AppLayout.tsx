@@ -1,13 +1,22 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
-  Store, LayoutDashboard, Tags, Package, Users, Truck, ShoppingCart, Boxes,
-  Receipt, RotateCcw, XCircle, FileBarChart2, LogOut,
+  LayoutDashboard, Tags, Package, Users, Truck, ShoppingCart, Boxes,
+  Receipt, RotateCcw, XCircle, FileBarChart2, Settings as SettingsIcon,
+  ShieldCheck, Coins, LogOut,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
+import { Logo } from '@/components/brand/Logo';
 import { cn } from '@/lib/utils';
 
-const nav = [
+interface NavItem {
+  to: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  adminOnly?: boolean;
+}
+
+const nav: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/categories', label: 'Categories', icon: Tags },
   { to: '/products', label: 'Products', icon: Package },
@@ -19,29 +28,34 @@ const nav = [
   { to: '/suppliers', label: 'Suppliers', icon: Truck },
   { to: '/purchases', label: 'Purchases', icon: ShoppingCart },
   { to: '/reports', label: 'Reports', icon: FileBarChart2 },
+  { to: '/currencies', label: 'Currencies', icon: Coins, adminOnly: true },
+  { to: '/users', label: 'Users', icon: ShieldCheck, adminOnly: true },
+  { to: '/settings', label: 'Settings', icon: SettingsIcon, adminOnly: true },
 ];
 
 export function AppLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const isAdmin = user?.role === 'admin';
 
   const handleLogout = async () => {
     await logout();
     navigate('/login', { replace: true });
   };
 
+  const visibleNav = nav.filter((n) => !n.adminOnly || isAdmin);
+
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="border-b bg-white">
         <div className="flex h-14 items-center justify-between px-6">
+          <Logo size={32} />
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Store className="h-4 w-4" />
-            </div>
-            <span className="font-semibold">Store Management</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground">{user?.name}</span>
+            <span className="text-sm text-muted-foreground">
+              {user?.name}
+              {isAdmin && <span className="ml-1 text-[10px] uppercase tracking-wide text-primary">Admin</span>}
+              {!isAdmin && <span className="ml-1 text-[10px] uppercase tracking-wide text-muted-foreground">Staff</span>}
+            </span>
             <Button variant="outline" size="sm" onClick={handleLogout}>
               <LogOut className="h-4 w-4" /> Logout
             </Button>
@@ -52,7 +66,7 @@ export function AppLayout() {
       <div className="flex">
         <aside className="hidden w-56 shrink-0 border-r bg-white md:block min-h-[calc(100vh-3.5rem)]">
           <nav className="space-y-1 p-3">
-            {nav.map(({ to, label, icon: Icon }) => (
+            {visibleNav.map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to}
                 to={to}

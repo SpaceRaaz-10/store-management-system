@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from 'react';
+import type { HTMLAttributes, ReactNode } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
@@ -19,10 +19,46 @@ const badgeVariants = cva(
   }
 );
 
+/**
+ * Title-Case a single status word: "active" → "Active",
+ * "partially_returned" → "Partially Returned".
+ */
+function titleCase(input: string): string {
+  return input
+    .replace(/_/g, ' ')
+    .trim()
+    .toLowerCase()
+    .split(' ')
+    .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : w))
+    .join(' ');
+}
+
+/**
+ * Recursively walk children. Text nodes get title-cased; elements are
+ * walked into so that `<span><Icon /> active</span>` also renders "Active".
+ */
+function formatNode(node: ReactNode): ReactNode {
+  if (typeof node === 'string') return titleCase(node);
+  if (typeof node === 'number' || typeof node === 'boolean' || node === null || node === undefined) {
+    return node;
+  }
+  if (Array.isArray(node)) return node.map((n, i) => <span key={i}>{formatNode(n)}</span>);
+  // React element — clone with formatted children
+  if (typeof node === 'object' && 'props' in (node as object)) {
+    const el = node as { props: { children?: ReactNode } };
+    return { ...(node as object), props: { ...(node as object).props, children: formatNode(el.props.children) } } as ReactNode;
+  }
+  return node;
+}
+
 export interface BadgeProps
   extends HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof badgeVariants> {}
 
-export function Badge({ className, variant, ...props }: BadgeProps) {
-  return <div className={cn(badgeVariants({ variant }), className)} {...props} />;
+export function Badge({ className, variant, children, ...props }: BadgeProps) {
+  return (
+    <div className={cn(badgeVariants({ variant }), className)} {...props}>
+      {formatNode(children)}
+    </div>
+  );
 }

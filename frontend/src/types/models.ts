@@ -555,3 +555,22 @@ export interface ProductSalesResult {
   rows: ProductSalesRow[];
   totals: { qty_sold: number; revenue_base: number; profit_base: number };
 }
+
+export interface AppUser {
+  id: number;
+  name: string;
+  email: string;
+  role: 'admin' | 'staff';
+  status: 'active' | 'inactive';
+  last_login_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserPayload {
+  name: string;
+  email: string;
+  password?: string;
+  role: 'admin' | 'staff';
+  status: 'active' | 'inactive';
+}

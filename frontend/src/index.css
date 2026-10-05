@@ -4,6 +4,8 @@
 
 @layer base {
   :root {
+    --font-sans: 'SF Pro Display', 'SF Pro Text', -apple-system, BlinkMacSystemFont,
+                 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     --background: 0 0% 100%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
@@ -24,5 +26,18 @@
     --radius: 0.5rem;
   }
   * { @apply border-border; }
-  body { @apply bg-background text-foreground antialiased; }
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+  }
+  button, input, select, textarea {
+    font-family: inherit;
+  }
 }

@@ -16,6 +16,9 @@ use App\Controllers\PaymentMethodController;
 use App\Controllers\InventoryController;
 use App\Controllers\DashboardController;
 use App\Controllers\ReportController;
+use App\Controllers\SettingController;
+use App\Controllers\UserController;
+use App\Controllers\ExchangeRateController;
 
 return function (Router $r): void {
 
@@ -30,7 +33,23 @@ return function (Router $r): void {
     $r->get ('/api/auth/me',     [AuthController::class, 'me']);
 
     // Reference data
-    $r->get('/api/currencies',      [CurrencyController::class, 'index']);
+    $r->get('/api/currencies',       [CurrencyController::class, 'index']);
+    $r->get('/api/currencies/all',   [CurrencyController::class, 'all']);
+    $r->post('/api/currencies',      [CurrencyController::class, 'store']);
+    $r->get('/api/currencies/{id}',  [CurrencyController::class, 'show']);
+    $r->put('/api/currencies/{id}',  [CurrencyController::class, 'update']);
+    $r->post('/api/currencies/{id}/activate',   [CurrencyController::class, 'activate']);
+    $r->post('/api/currencies/{id}/deactivate', [CurrencyController::class, 'deactivate']);
+    $r->delete('/api/currencies/{id}',          [CurrencyController::class, 'destroy']);
+
+    // Exchange rates
+    $r->get('/api/exchange-rates/history', [ExchangeRateController::class, 'history']);
+    $r->get('/api/exchange-rates/status',  [ExchangeRateController::class, 'status']);
+    $r->post('/api/exchange-rates/fetch',  [ExchangeRateController::class, 'fetch']);
+    $r->post('/api/exchange-rates/auto',   [ExchangeRateController::class, 'setAuto']);
+    $r->post('/api/exchange-rates',        [ExchangeRateController::class, 'store']);
+    $r->delete('/api/exchange-rates/{id}', [ExchangeRateController::class, 'destroy']);
+
     $r->get('/api/payment-methods', [PaymentMethodController::class, 'index']);
 
     // Categories
@@ -99,6 +118,19 @@ return function (Router $r): void {
     $r->get ('/api/voids/{id}',          [VoidController::class, 'show']);
     $r->post('/api/voids/{id}/approve',  [VoidController::class, 'approve']);
     $r->post('/api/voids/{id}/reject',   [VoidController::class, 'reject']);
+
+    // Users (admin only)
+    $r->get   ('/api/users',                 [UserController::class, 'index']);
+    $r->post  ('/api/users',                 [UserController::class, 'store']);
+    $r->get   ('/api/users/{id}',            [UserController::class, 'show']);
+    $r->put   ('/api/users/{id}',            [UserController::class, 'update']);
+    $r->post  ('/api/users/{id}/password',   [UserController::class, 'changePassword']);
+    $r->post  ('/api/users/{id}/activate',   [UserController::class, 'activate']);
+    $r->post  ('/api/users/{id}/deactivate', [UserController::class, 'deactivate']);
+
+    // Settings
+    $r->get('/api/settings', [SettingController::class, 'index']);
+    $r->put('/api/settings', [SettingController::class, 'update']);
 
     // Dashboard
     $r->get('/api/dashboard/stats', [DashboardController::class, 'stats']);

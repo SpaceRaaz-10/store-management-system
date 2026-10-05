@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Store, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { Logo } from '@/components/brand/Logo';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -41,10 +42,8 @@ export function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center text-center">
-          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg">
-            <Store className="h-7 w-7" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">Store Management</h1>
+          <Logo size={64} variant="mark" className="mb-3 text-primary drop-shadow-sm" />
+          <h1 className="text-2xl font-bold tracking-tight">Store Management System</h1>
           <p className="text-sm text-muted-foreground">Sign in to your account</p>
         </div>
 

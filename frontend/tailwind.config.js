@@ -4,6 +4,26 @@ export default {
   theme: {
     container: { center: true, padding: '1rem', screens: { '2xl': '1400px' } },
     extend: {
+      fontFamily: {
+        sans: [
+          '"SF Pro Display"',
+          '"SF Pro Text"',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Inter',
+          '"Segoe UI"',
+          'Roboto',
+          '"Helvetica Neue"',
+          'Arial',
+          'sans-serif',
+        ],
+      },
+      fontSize: {
+        // slightly tighter leading to match SF Pro’s feel
+        'xs': ['0.75rem', { lineHeight: '1.1rem' }],
+        'sm': ['0.875rem', { lineHeight: '1.25rem' }],
+        'base': ['0.9375rem', { lineHeight: '1.4rem' }],
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

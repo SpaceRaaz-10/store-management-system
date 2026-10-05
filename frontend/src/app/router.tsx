@@ -16,6 +16,7 @@ import { SalesPage } from '@/features/sales/SalesPage';
 import { NewSalePage } from '@/features/sales/NewSalePage';
 import { ReturnsPage } from '@/features/returns/ReturnsPage';
 import { VoidsPage } from '@/features/voids/VoidsPage';
+import { ReportsPage } from '@/features/reports/ReportsPage';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -38,6 +39,7 @@ export const router = createBrowserRouter([
       { path: 'sales/new', element: <NewSalePage /> },
       { path: 'returns', element: <ReturnsPage /> },
       { path: 'voids', element: <VoidsPage /> },
+      { path: 'reports', element: <ReportsPage /> },
       { path: 'customers', element: <CustomersPage /> },
       { path: 'suppliers', element: <SuppliersPage /> },
       { path: 'purchases', element: <PurchasesPage /> },

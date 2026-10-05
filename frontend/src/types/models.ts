@@ -349,3 +349,209 @@ export interface VoidRequest {
   decided_at: string | null;
   completed_at: string | null;
 }
+
+export interface DashboardTotals {
+  active_products: number;
+  total_customers: number;
+  total_suppliers: number;
+  low_stock_count: number;
+  pending_returns: number;
+  pending_voids: number;
+}
+
+export interface DashboardSalesPeriod {
+  count: number;
+  revenue: number;
+  profit: number;
+}
+
+export interface DashboardSalesSummary {
+  today: DashboardSalesPeriod;
+  month: DashboardSalesPeriod;
+  all_time: DashboardSalesPeriod;
+}
+
+export interface DashboardTrendPoint {
+  date: string;
+  count: number;
+  revenue: number;
+  profit: number;
+}
+
+export interface DashboardTopProduct {
+  id: number;
+  name: string;
+  sku: string;
+  qty_sold: string;
+  revenue_base: string;
+}
+
+export interface DashboardRecentSale {
+  id: number;
+  invoice_no: string;
+  sale_date: string;
+  total: string;
+  total_base: string;
+  payment_status: 'unpaid' | 'partial' | 'paid';
+  status: string;
+  customer_name: string | null;
+  currency_symbol: string;
+  currency_code: string;
+  user_name: string;
+}
+
+export interface DashboardLowStock {
+  id: number;
+  name: string;
+  sku: string;
+  unit: string;
+  stock_qty: string;
+  reorder_level: string;
+  category_name: string | null;
+}
+
+export interface DashboardStats {
+  totals: DashboardTotals;
+  sales: DashboardSalesSummary;
+  trend: DashboardTrendPoint[];
+  top_products: DashboardTopProduct[];
+  recent_sales: DashboardRecentSale[];
+  low_stock: DashboardLowStock[];
+}
+
+// ---------- Reports ----------
+export interface ReportFilters {
+  from?: string;
+  to?: string;
+  group_by?: 'day' | 'week' | 'month' | 'year';
+  category_id?: number | '';
+  currency_id?: number | '';
+  type?: string;
+  search?: string;
+}
+
+export interface SalesReportRow {
+  period: string;
+  order_count: string;
+  subtotal_base: string;
+  discount_base: string;
+  tax_base: string;
+  revenue_base: string;
+  profit_base: string;
+}
+
+export interface SalesReportResult {
+  rows: SalesReportRow[];
+  totals: {
+    order_count: number;
+    revenue_base: number;
+    profit_base: number;
+    discount_base: number;
+    tax_base: number;
+  };
+}
+
+export interface PurchaseReportRow {
+  period: string;
+  order_count: string;
+  total_base: string;
+  paid_base: string;
+  due_base: string;
+}
+
+export interface PurchaseReportResult {
+  rows: PurchaseReportRow[];
+  totals: { order_count: number; total_base: number; paid_base: number; due_base: number };
+}
+
+export interface InventoryReportRow {
+  id: number;
+  name: string;
+  sku: string;
+  barcode: string | null;
+  unit: string;
+  cost_price: string;
+  selling_price: string;
+  stock_qty: string;
+  reorder_level: string;
+  stock_value_cost: string;
+  stock_value_retail: string;
+  category_name: string | null;
+  stock_status: 'ok' | 'low';
+}
+
+export interface InventoryReportResult {
+  rows: InventoryReportRow[];
+  totals: { item_count: number; total_stock_value_cost: number; total_stock_value_retail: number };
+}
+
+export interface LowStockReportRow {
+  id: number;
+  name: string;
+  sku: string;
+  unit: string;
+  stock_qty: string;
+  reorder_level: string;
+  shortfall: string;
+  category_name: string | null;
+  default_supplier_name: string | null;
+}
+
+export interface RevenueProfitResult {
+  summary: {
+    order_count: string;
+    subtotal_base: string;
+    discount_base: string;
+    tax_base: string;
+    revenue_base: string;
+    cogs_base: string;
+    profit_base: string;
+    margin_percent: number;
+  };
+  by_currency: Array<{
+    code: string;
+    symbol: string;
+    order_count: string;
+    revenue_original: string;
+    revenue_base: string;
+  }>;
+  by_month: Array<{
+    period: string;
+    order_count: string;
+    revenue_base: string;
+    cogs_base: string;
+    profit_base: string;
+  }>;
+}
+
+export interface TransactionRow {
+  txn_type: 'sale' | 'purchase';
+  ref_id: number;
+  reference: string;
+  txn_date: string;
+  amount: string;
+  amount_base: string;
+  payment_status: string;
+  status: string;
+  party_name: string;
+  currency_symbol: string;
+  currency_code: string;
+  user_name: string;
+}
+
+export interface ProductSalesRow {
+  id: number;
+  name: string;
+  sku: string;
+  category_name: string | null;
+  qty_sold: string;
+  qty_returned: string;
+  revenue_base: string;
+  cogs_base: string;
+  profit_base: string;
+}
+
+export interface ProductSalesResult {
+  rows: ProductSalesRow[];
+  totals: { qty_sold: number; revenue_base: number; profit_base: number };
+}

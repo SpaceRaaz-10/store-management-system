@@ -14,6 +14,8 @@ use App\Controllers\VoidController;
 use App\Controllers\CurrencyController;
 use App\Controllers\PaymentMethodController;
 use App\Controllers\InventoryController;
+use App\Controllers\DashboardController;
+use App\Controllers\ReportController;
 
 return function (Router $r): void {
 
@@ -97,6 +99,18 @@ return function (Router $r): void {
     $r->get ('/api/voids/{id}',          [VoidController::class, 'show']);
     $r->post('/api/voids/{id}/approve',  [VoidController::class, 'approve']);
     $r->post('/api/voids/{id}/reject',   [VoidController::class, 'reject']);
+
+    // Dashboard
+    $r->get('/api/dashboard/stats', [DashboardController::class, 'stats']);
+
+    // Reports
+    $r->get('/api/reports/sales',         [ReportController::class, 'sales']);
+    $r->get('/api/reports/purchases',     [ReportController::class, 'purchases']);
+    $r->get('/api/reports/inventory',     [ReportController::class, 'inventory']);
+    $r->get('/api/reports/low-stock',     [ReportController::class, 'lowStock']);
+    $r->get('/api/reports/revenue-profit',[ReportController::class, 'revenueProfit']);
+    $r->get('/api/reports/transactions',  [ReportController::class, 'transactions']);
+    $r->get('/api/reports/product-sales', [ReportController::class, 'productSales']);
 
     // Inventory
     $r->get ('/api/inventory',            [InventoryController::class, 'stock']);

@@ -1,7 +1,7 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
   Store, LayoutDashboard, Tags, Package, Users, Truck, ShoppingCart, Boxes,
-  Receipt, RotateCcw, XCircle, LogOut,
+  Receipt, RotateCcw, XCircle, FileBarChart2, LogOut,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
@@ -18,6 +18,7 @@ const nav = [
   { to: '/customers', label: 'Customers', icon: Users },
   { to: '/suppliers', label: 'Suppliers', icon: Truck },
   { to: '/purchases', label: 'Purchases', icon: ShoppingCart },
+  { to: '/reports', label: 'Reports', icon: FileBarChart2 },
 ];
 
 export function AppLayout() {
